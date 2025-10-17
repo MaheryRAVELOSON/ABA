@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABA Framework Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .input-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+            min-height: 400px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .output-area {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .arguments-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .argument-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .attack-item {
+            background: #fff3cd;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #ffc107;
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .instructions code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 ABA Framework Generator</h1>
+            <p>Assumption-Based Argumentation with Preferences (ABA+)</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>📝 Input ABA Framework</h2>
+                
+                <div class="instructions">
+                    <h3>Input Format:</h3>
+                    <p><strong>L:</strong> Language (all literals)<br>
+                    <strong>A:</strong> Assumptions<br>
+                    <strong>C(x):</strong> Contrary of assumption x<br>
+                    <strong>[rule]:</strong> conclusion <- premises<br>
+                    <strong>PREF:</strong> Preferences (e.g., <code>a > b</code> or <code>a,b > c</code>)</p>
+                </div>
+
+                <div class="input-area">
+                    <textarea id="abaInput" placeholder="Enter your ABA framework here...">L: [a,b,c,q,p,r,s,t]
+A: [a,b,c]
+C(a): r
+C(b): s
+C(c): t
+[r1]: p <- q,a
+[r2]: q <- 
+[r3]: r <- b,c
+[r4]: t <- p,c
+[r5]: s <- t
+PREF: a > b</textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="processABA()">🚀 Generate Arguments & Attacks</button>
+                        <button class="btn-secondary" onclick="clearAll()">🗑️ Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 Results</h2>
+                <div class="output-area" id="output">
+                    <p style="text-align: center; color: #999; padding: 50px 20px;">
+                        Enter an ABA framework and click "Generate" to see results
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function processABA() {
+            const input = document.getElementById('abaInput').value;
+            const output = document.getElementById('output');
+            
+            // Show loading
+            output.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing ABA framework...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ aba_text: input })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    output.innerHTML = `
+                        <div class="stat-card" style="border-left-color: #dc3545;">
+                            <h3>❌ Error</h3>
+                            <p style="color: #dc3545;">${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                output.innerHTML = `
+                    <div class="stat-card" style="border-left-color: #dc3545;">
+                        <h3>❌ Error</h3>
+                        <p style="color: #dc3545;">Failed to process: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayResults(data) {
+            const output = document.getElementById('output');
+            
+            let html = `
+                <div class="stat-card">
+                    <h3>✅ Generated Arguments</h3>
+                    <div class="stat-number">${data.arguments.length}</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>⚔️ Attack Statistics</h3>
+                    <p><strong>Standard Attacks:</strong> ${data.attacks.standard}</p>
+                    <p><strong>Normal Attacks (ABA+):</strong> ${data.attacks.normal}</p>
+                    <p><strong>Reverse Attacks (ABA+):</strong> ${data.attacks.reverse}</p>
+                    <p><strong>Total ABA+ Attacks:</strong> ${data.attacks.total_aba_plus}</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>📋 Arguments List</h3>
+                    <div class="arguments-list">
+            `;
+
+            data.arguments.forEach(arg => {
+                html += `
+                    <div class="argument-item">
+                        <strong>Arg ${arg.id}:</strong> (${arg.conclusion}, {${arg.support.join(', ')}})
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>🎯 Normal Attacks</h3>
+            `;
+
+            if (data.attack_details.normal.length > 0) {
+                data.attack_details.normal.forEach(attack => {
+                    html += `<div class="attack-item">${attack}</div>`;
+                });
+            } else {
+                html += `<p style="color: #999;">No normal attacks found</p>`;
+            }
+
+            html += `
+                </div>
+
+                <div class="stat-card">
+                    <h3>🔄 Reverse Attacks</h3>
+            `;
+
+            if (data.attack_details.reverse.length > 0) {
+                data.attack_details.reverse.forEach(attack => {
+                    html += `<div class="attack-item">${attack}</div>`;
+                });
+            } else {
+                html += `<p style="color: #999;">No reverse attacks found</p>`;
+            }
+
+            html += `</div>`;
+
+            output.innerHTML = html;
+        }
+
+        function clearAll() {
+            document.getElementById('abaInput').value = '';
+            document.getElementById('output').innerHTML = `
+                <p style="text-align: center; color: #999; padding: 50px 20px;">
+                    Enter an ABA framework and click "Generate" to see results
+                </p>
+            `;
+        }
+    </script>
+</body>
+</html>
