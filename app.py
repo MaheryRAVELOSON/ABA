@@ -197,6 +197,80 @@ class ABAFramework:
             'reverse': reverse_attacks,
             'all_aba_plus': all_attacks
         }
+    
+    def convert_to_non_circular(self):
+        """
+        Transforme le cadre ABA en version non-circulaire D∘
+        """
+        if not hasattr(self, 'is_circular'):
+            raise NotImplementedError("La méthode 'is_circular' n'est pas définie pour cette instance.")
+        
+        if not self.is_circular():
+            print("Le cadre n'est pas circulaire, aucune transformation nécessaire")
+            return self
+        
+        non_circular_aba = ABAFramework()
+        L_minus_A = self.language - self.assumptions
+        k_max = len(L_minus_A)
+        
+        # Étape 1: Créer le nouveau langage
+        new_language = set(self.assumptions.copy())
+        for literal in L_minus_A:
+            for k in range(1, k_max + 1):
+                new_literal = f"{literal}^{k}"
+                new_language.add(new_literal)
+        
+        non_circular_aba.language = new_language
+        non_circular_aba.assumptions = self.assumptions.copy()
+        non_circular_aba.contraries = self.contraries.copy()
+        non_circular_aba.preferences = self.preferences.copy()
+        
+        # Étape 2: Transformer les règles
+        new_rules = []
+        for rule in self.rules:
+            conclusion = rule['conclusion']
+            premises = rule['premises']
+            
+            if conclusion in self.assumptions:
+                new_rules.append(rule)
+            else:
+                for k in range(1, k_max + 1):
+                    new_conclusion = f"{conclusion}^{k}"
+                    new_premises = []
+                    for premise in premises:
+                        if premise in self.assumptions:
+                            new_premises.append(premise)
+                        else:
+                            premise_k = k - 1 if k > 1 else 1
+                            new_premises.append(f"{premise}^{premise_k}")
+                    
+                    new_rules.append({
+                        'name': f"{rule['name']}_k{k}",
+                        'conclusion': new_conclusion,
+                        'premises': new_premises
+                    })
+        
+        # Étape 3: Ajouter les règles de propagation
+        for literal in L_minus_A:
+            for k in range(2, k_max + 1):
+                new_rules.append({
+                    'name': f"prop_{literal}_{k}",
+                    'conclusion': f"{literal}^{k}",
+                    'premises': [f"{literal}^{k-1}"]
+                })
+        
+        non_circular_aba.rules = new_rules
+        
+        # Étape 4: Mettre à jour les contraires
+        for assumption, contrary in self.contraries.items():
+            if contrary in L_minus_A:
+                for k in range(1, k_max + 1):
+                    non_circular_aba.contraries[assumption] = f"{contrary}^{k}"
+            else:
+                non_circular_aba.contraries[assumption] = contrary
+        
+        print(f"Transformation terminée. {k_max} nouvelles versions créées.")
+        return non_circular_aba
 
 def parse_aba_input(aba_text):
     language = set()
