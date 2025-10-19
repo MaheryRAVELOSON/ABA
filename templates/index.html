@@ -85,6 +85,16 @@
             background: var(--secondary-color);
             transform: translateY(-1px);
         }
+        button:disabled {
+            background: var(--border-color);
+            color: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button:disabled:hover {
+            background: var(--border-color);
+            transform: none;
+        }
         .button-danger {
             background: var(--danger-color);
         }
@@ -211,6 +221,14 @@
             margin-bottom: 20px;
             border-left: 4px solid #e67e22;
         }
+        .info {
+            background: var(--accent-color);
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2980b9;
+        }
         .framework-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -319,9 +337,8 @@ C(b): r
 [r2]: q <- p
 [r3]: r <- a,b</textarea>
             <div class="button-group">
-                <button onclick="processABA()">Analyser le Cadre ABA</button>
+                <button id="transformAtomicButton" onclick="processABA()">Transformer en Atomique</button>
                 <button id="transformNonCircularButton" class="button-warning" onclick="transformNonCircularABA()" style="display: none;">Transformer en Non-Circulaire</button>
-                <button id="transformAtomicButton" class="button-success" onclick="transformAtomicABA()" style="display: none;">Transformer en Atomique</button>
             </div>
         </div>
 
@@ -333,6 +350,7 @@ C(b): r
             <div id="successMessage" class="success"></div>
             <div id="warningMessage" class="warning" style="display: none;"></div>
             <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="infoMessage" class="info" style="display: none;"></div>
 
             <!-- Circular Dependencies Section -->
             <div id="circularSection" class="section" style="display: none;">
@@ -481,25 +499,72 @@ C(b): r
 
     <script>
         let currentABAText = '';
+        let currentIsCircular = false;
+        let lastProcessedText = '';
+
+        // Réinitialiser l'état quand l'utilisateur modifie le texte
+        function resetButtonState() {
+            const currentText = document.getElementById('abaInput').value;
+            
+            // Si le texte a changé depuis la dernière analyse
+            if (currentText !== lastProcessedText) {
+                const transformAtomicButton = document.getElementById('transformAtomicButton');
+                const transformNonCircularButton = document.getElementById('transformNonCircularButton');
+                
+                // Réactiver tous les boutons pour la nouvelle analyse
+                transformAtomicButton.disabled = false;
+                transformNonCircularButton.style.display = 'none';
+                
+                // Cacher les résultats précédents
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'none';
+                document.getElementById('warningMessage').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('infoMessage').style.display = 'none';
+                document.getElementById('circularSection').style.display = 'none';
+                document.getElementById('transformationSection').style.display = 'none';
+            }
+        }
+
+        // Écouter les modifications du texte
+        document.getElementById('abaInput').addEventListener('input', resetButtonState);
 
         function processABA() {
             currentABAText = document.getElementById('abaInput').value;
+            
+            // Vérifier si le texte est vide
+            if (!currentABAText.trim()) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = 'Veuillez entrer un cadre ABA valide.';
+                errorMessage.style.display = 'block';
+                document.getElementById('results').style.display = 'block';
+                return;
+            }
+
             const loading = document.getElementById('loading');
             const results = document.getElementById('results');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             const warningMessage = document.getElementById('warningMessage');
-            const transformNonCircularButton = document.getElementById('transformNonCircularButton');
+            const infoMessage = document.getElementById('infoMessage');
             const transformAtomicButton = document.getElementById('transformAtomicButton');
+            const transformNonCircularButton = document.getElementById('transformNonCircularButton');
             const circularSection = document.getElementById('circularSection');
             const transformationSection = document.getElementById('transformationSection');
+            const atomicFrameworkCard = document.getElementById('atomicFrameworkCard');
+            const atomicRulesSection = document.getElementById('atomicRulesSection');
 
             loading.style.display = 'block';
             results.style.display = 'none';
             errorMessage.style.display = 'none';
             warningMessage.style.display = 'none';
+            infoMessage.style.display = 'none';
             circularSection.style.display = 'none';
             transformationSection.style.display = 'none';
+            
+            // Toujours afficher les sections atomiques par défaut pour la transformation atomique
+            atomicFrameworkCard.style.display = 'block';
+            atomicRulesSection.style.display = 'block';
 
             fetch('/process', {
                 method: 'POST',
@@ -511,47 +576,80 @@ C(b): r
             .then(response => response.json())
             .then(data => {
                 loading.style.display = 'none';
+                lastProcessedText = currentABAText; // Mettre à jour le texte traité
                 
                 if (data.success) {
+                    currentIsCircular = data.is_circular;
                     displayResults(data);
                     
                     if (data.is_circular) {
                         warningMessage.textContent = 'Le cadre ABA est CIRCULAIRE. La transformation atomique ne peut pas être appliquée directement.';
                         warningMessage.style.display = 'block';
                         transformNonCircularButton.style.display = 'inline-block';
-                        transformAtomicButton.style.display = 'inline-block';
+                        transformAtomicButton.disabled = true;
                         circularSection.style.display = 'block';
                         displayCircularDependencies(data.circular_dependencies);
                     } else {
-                        successMessage.textContent = 'Cadre ABA non-circulaire - Analyse terminée avec succès!';
+                        successMessage.textContent = 'Cadre ABA non-circulaire - Transformation atomique réussie!';
                         successMessage.style.display = 'block';
                         transformNonCircularButton.style.display = 'none';
-                        transformAtomicButton.style.display = 'none';
+                        transformAtomicButton.disabled = false;
                     }
                     
                     results.style.display = 'block';
                 } else {
                     errorMessage.textContent = 'Erreur: ' + data.error;
                     errorMessage.style.display = 'block';
+                    results.style.display = 'block';
                 }
             })
             .catch(error => {
                 loading.style.display = 'none';
                 errorMessage.textContent = 'Erreur de connexion: ' + error;
                 errorMessage.style.display = 'block';
+                results.style.display = 'block';
             });
         }
 
         function transformNonCircularABA() {
+            currentABAText = document.getElementById('abaInput').value;
+            
+            // Vérifier si le texte a changé depuis la dernière analyse
+            if (currentABAText !== lastProcessedText) {
+                const infoMessage = document.getElementById('infoMessage');
+                infoMessage.textContent = 'Le cadre a été modifié. Veuillez d\'abord analyser le cadre avec "Transformer en Atomique".';
+                infoMessage.style.display = 'block';
+                document.getElementById('results').style.display = 'block';
+                return;
+            }
+
+            // Si le cadre est déjà non-circulaire, afficher un message
+            if (!currentIsCircular) {
+                const infoMessage = document.getElementById('infoMessage');
+                infoMessage.textContent = 'Le cadre est déjà non-circulaire. Aucune transformation nécessaire.';
+                infoMessage.style.display = 'block';
+                document.getElementById('results').style.display = 'block';
+                return;
+            }
+
             const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             const warningMessage = document.getElementById('warningMessage');
+            const infoMessage = document.getElementById('infoMessage');
+            const transformAtomicButton = document.getElementById('transformAtomicButton');
             const transformationSection = document.getElementById('transformationSection');
+            const atomicFrameworkCard = document.getElementById('atomicFrameworkCard');
+            const atomicRulesSection = document.getElementById('atomicRulesSection');
 
             loading.style.display = 'block';
             errorMessage.style.display = 'none';
             warningMessage.style.display = 'none';
+            infoMessage.style.display = 'none';
+
+            // Cacher les sections atomiques pour la transformation non-circulaire
+            atomicFrameworkCard.style.display = 'none';
+            atomicRulesSection.style.display = 'none';
 
             fetch('/transform_non_circular', {
                 method: 'POST',
@@ -565,51 +663,20 @@ C(b): r
                 loading.style.display = 'none';
                 
                 if (data.success) {
+                    currentIsCircular = false; // Maintenant c'est non-circulaire
                     displayResults(data);
                     successMessage.textContent = 'Transformation en cadre non-circulaire réussie!';
                     successMessage.style.display = 'block';
                     transformationSection.style.display = 'block';
                     displayTransformationInfo(data.transformation_info);
-                } else {
-                    errorMessage.textContent = 'Erreur lors de la transformation: ' + data.error;
-                    errorMessage.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                loading.style.display = 'none';
-                errorMessage.textContent = 'Erreur de connexion: ' + error;
-                errorMessage.style.display = 'block';
-            });
-        }
-
-        function transformAtomicABA() {
-            const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            const warningMessage = document.getElementById('warningMessage');
-            const transformationSection = document.getElementById('transformationSection');
-
-            loading.style.display = 'block';
-            errorMessage.style.display = 'none';
-            warningMessage.style.display = 'none';
-
-            fetch('/transform_atomic', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({aba_text: currentABAText})
-            })
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = 'none';
-                
-                if (data.success) {
-                    displayResults(data);
-                    successMessage.textContent = 'Transformation en cadre atomique réussie!';
-                    successMessage.style.display = 'block';
-                    transformationSection.style.display = 'block';
-                    displayTransformationInfo(data.transformation_info);
+                    
+                    // Cacher le bouton de transformation non-circulaire et réactiver le bouton atomique
+                    document.getElementById('transformNonCircularButton').style.display = 'none';
+                    transformAtomicButton.disabled = false;
+                    
+                    // S'assurer que les sections atomiques restent cachées
+                    atomicFrameworkCard.style.display = 'none';
+                    atomicRulesSection.style.display = 'none';
                 } else {
                     errorMessage.textContent = 'Erreur lors de la transformation: ' + data.error;
                     errorMessage.style.display = 'block';
@@ -701,8 +768,8 @@ C(b): r
             const atomicFrameworkCard = document.getElementById('atomicFrameworkCard');
             const atomicRulesSection = document.getElementById('atomicRulesSection');
             
-            if (data.atomic_framework) {
-                // Afficher le cadre atomique
+            if (data.atomic_framework && data.transformation_type !== 'non_circular') {
+                // Afficher le cadre atomique seulement si ce n'est pas une transformation non-circulaire
                 atomicFrameworkCard.style.display = 'block';
                 atomicRulesSection.style.display = 'block';
                 
@@ -712,7 +779,7 @@ C(b): r
                 displayContraries('atomicContraries', data.atomic_framework.contraries);
                 displayRules('rulesList', data.atomic_framework.rules);
             } else {
-                // Cacher le cadre atomique
+                // Cacher le cadre atomique pour les transformations non-circulaires
                 atomicFrameworkCard.style.display = 'none';
                 atomicRulesSection.style.display = 'none';
             }
