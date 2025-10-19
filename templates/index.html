@@ -6,12 +6,16 @@
     <title>ABA+ Framework Analyzer</title>
     <style>
         :root {
-            --rainbow-1: #ff6b6b;
-            --rainbow-2: #ffa500;
-            --rainbow-3: #ffd93d;
-            --rainbow-4: #6bcf7f;
-            --rainbow-5: #4d96ff;
-            --rainbow-6: #9d4edd;
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --text-color: #333;
+            --border-color: #bdc3c7;
         }
 
         body {
@@ -19,14 +23,7 @@
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, 
-                var(--rainbow-1) 0%, 
-                var(--rainbow-2) 20%, 
-                var(--rainbow-3) 40%, 
-                var(--rainbow-4) 60%, 
-                var(--rainbow-5) 80%, 
-                var(--rainbow-6) 100%);
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
         .container {
@@ -34,128 +31,105 @@
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         h1 {
-            background: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-2), 
-                var(--rainbow-3), 
-                var(--rainbow-4), 
-                var(--rainbow-5), 
-                var(--rainbow-6));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--primary-color);
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.5em;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         .input-section {
             margin-bottom: 30px;
+            background: var(--light-color);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
         }
         textarea {
             width: 100%;
             height: 200px;
             padding: 15px;
-            border: 3px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-2), 
-                var(--rainbow-3), 
-                var(--rainbow-4), 
-                var(--rainbow-5), 
-                var(--rainbow-6)) 1;
-            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             resize: vertical;
-            background: rgba(255, 255, 255, 0.9);
+            background: white;
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
         button {
-            background: linear-gradient(135deg, 
-                var(--rainbow-4), 
-                var(--rainbow-5));
+            background: var(--accent-color);
             color: white;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border: none;
-            border-radius: 25px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
+            font-size: 14px;
             font-weight: bold;
-            transition: transform 0.3s, box-shadow 0.3s;
-            margin-right: 10px;
+            transition: all 0.3s;
         }
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            background: linear-gradient(135deg, 
-                var(--rainbow-5), 
-                var(--rainbow-6));
+            background: var(--secondary-color);
+            transform: translateY(-1px);
         }
         .button-danger {
-            background: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-2));
+            background: var(--danger-color);
         }
         .button-danger:hover {
-            background: linear-gradient(135deg, 
-                var(--rainbow-2), 
-                var(--rainbow-1));
+            background: #c0392b;
         }
         .button-success {
-            background: linear-gradient(135deg, 
-                var(--rainbow-4), 
-                var(--rainbow-3));
+            background: var(--success-color);
         }
         .button-success:hover {
-            background: linear-gradient(135deg, 
-                var(--rainbow-3), 
-                var(--rainbow-4));
+            background: #229954;
+        }
+        .button-warning {
+            background: var(--warning-color);
+        }
+        .button-warning:hover {
+            background: #e67e22;
         }
         .results {
             margin-top: 30px;
         }
         .section {
-            background: rgba(248, 249, 250, 0.8);
+            background: white;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 10px;
-            border-left: 6px solid;
-            border-image: linear-gradient(to bottom, 
-                var(--rainbow-1), 
-                var(--rainbow-2), 
-                var(--rainbow-3), 
-                var(--rainbow-4), 
-                var(--rainbow-5), 
-                var(--rainbow-6)) 1;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .section h3 {
-            background: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-3), 
-                var(--rainbow-5));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--primary-color);
             margin-top: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
         }
         .function-source {
             font-size: 0.8em;
-            color: #666;
+            color: #7f8c8d;
             font-family: 'Courier New', monospace;
-            background: rgba(0,0,0,0.1);
+            background: var(--light-color);
             padding: 2px 8px;
-            border-radius: 10px;
+            border-radius: 4px;
         }
         .arguments-grid {
             display: grid;
@@ -164,36 +138,30 @@
             margin-top: 15px;
         }
         .argument-card {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-4), 
-                var(--rainbow-5)) 1;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
             transition: transform 0.3s;
         }
         .argument-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         .attack-list {
             max-height: 300px;
             overflow-y: auto;
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-2), 
-                var(--rainbow-3)) 1;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
         .attack-item {
             padding: 10px;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 5px;
-            border-left: 4px solid var(--rainbow-1);
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
         }
         .stats {
             display: grid;
@@ -205,27 +173,14 @@
             background: white;
             padding: 20px;
             text-align: center;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-2), 
-                var(--rainbow-3), 
-                var(--rainbow-4), 
-                var(--rainbow-5), 
-                var(--rainbow-6)) 1;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
         }
         .stat-number {
             font-size: 2em;
             font-weight: bold;
-            background: linear-gradient(135deg, 
-                var(--rainbow-1), 
-                var(--rainbow-3), 
-                var(--rainbow-5));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--accent-color);
         }
         .loading {
             text-align: center;
@@ -233,28 +188,28 @@
             display: none;
         }
         .error {
-            background: var(--rainbow-1);
+            background: var(--danger-color);
             color: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 6px;
             margin-bottom: 20px;
-            border-left: 6px solid #c44569;
+            border-left: 4px solid #c0392b;
         }
         .success {
-            background: var(--rainbow-4);
+            background: var(--success-color);
             color: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 6px;
             margin-bottom: 20px;
-            border-left: 6px solid #27ae60;
+            border-left: 4px solid #229954;
         }
         .warning {
-            background: var(--rainbow-2);
+            background: var(--warning-color);
             color: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 6px;
             margin-bottom: 20px;
-            border-left: 6px solid #f39c12;
+            border-left: 4px solid #e67e22;
         }
         .framework-info {
             display: grid;
@@ -262,87 +217,88 @@
             gap: 20px;
         }
         .info-card {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-3), 
-                var(--rainbow-4)) 1;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
         .rules-list {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-5), 
-                var(--rainbow-6)) 1;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
         .rule-item {
             padding: 10px;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #f8f9fa, #e3f2fd);
-            border-radius: 5px;
-            border-left: 4px solid var(--rainbow-5);
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
             font-family: 'Courier New', monospace;
         }
         .contraries-list {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid;
-            border-image: linear-gradient(135deg, 
-                var(--rainbow-6), 
-                var(--rainbow-1)) 1;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
         .contrary-item {
             padding: 8px;
             margin-bottom: 5px;
-            background: linear-gradient(135deg, #f8f9fa, #f3e5f5);
-            border-radius: 5px;
-            border-left: 4px solid var(--rainbow-6);
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
         }
         .sub-section {
             margin-top: 15px;
         }
         .circular-dependencies {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid var(--rainbow-1);
+            border-radius: 6px;
+            border: 1px solid var(--danger-color);
             margin-bottom: 15px;
         }
         .cycle-item {
             padding: 10px;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
-            border-radius: 5px;
-            border-left: 4px solid var(--rainbow-1);
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid var(--danger-color);
             font-family: 'Courier New', monospace;
         }
         .transformation-info {
-            background: white;
+            background: var(--light-color);
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid var(--rainbow-4);
+            border-radius: 6px;
+            border: 1px solid var(--success-color);
             margin-bottom: 15px;
         }
         .transform-item {
             padding: 8px;
             margin-bottom: 5px;
-            background: linear-gradient(135deg, #dfe6e9, #b2bec3);
-            border-radius: 5px;
+            background: white;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            .framework-info {
+                grid-template-columns: 1fr;
+            }
+            .arguments-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌈 ABA+ Framework Analyzer</h1>
+        <h1>ABA+ Framework Analyzer</h1>
         
         <div class="input-section">
-            <h3>🎯 Entrez votre cadre ABA :</h3>
+            <h3>Entrez votre cadre ABA :</h3>
             <textarea id="abaInput" placeholder="L: [a,b,c,q,p,r,s,t]
 A: [a,b,c]
 C(a): r
@@ -362,8 +318,11 @@ C(b): r
 [r5]: b <- a
 [r2]: q <- p
 [r3]: r <- a,b</textarea>
-            <button onclick="processABA()">🚀 Analyser le Cadre ABA</button>
-            <button id="transformButton" class="button-danger" onclick="transformABA()" style="display: none;">🔄 Transformer en Non-Circulaire</button>
+            <div class="button-group">
+                <button onclick="processABA()">Analyser le Cadre ABA</button>
+                <button id="transformNonCircularButton" class="button-warning" onclick="transformNonCircularABA()" style="display: none;">Transformer en Non-Circulaire</button>
+                <button id="transformAtomicButton" class="button-success" onclick="transformAtomicABA()" style="display: none;">Transformer en Atomique</button>
+            </div>
         </div>
 
         <div id="loading" class="loading">
@@ -378,7 +337,7 @@ C(b): r
             <!-- Circular Dependencies Section -->
             <div id="circularSection" class="section" style="display: none;">
                 <h3>
-                    🔄 Dépendances Circulaires Détectées
+                    Dépendances Circulaires Détectées
                     <span class="function-source">is_circular() + get_circular_dependencies()</span>
                 </h3>
                 <div class="circular-dependencies" id="circularDependencies"></div>
@@ -387,7 +346,7 @@ C(b): r
             <!-- Transformation Info Section -->
             <div id="transformationSection" class="section" style="display: none;">
                 <h3>
-                    🛠️ Détails de la Transformation
+                    Détails de la Transformation
                     <span class="function-source">convert_to_non_circular()</span>
                 </h3>
                 <div class="transformation-info" id="transformationInfo"></div>
@@ -414,7 +373,7 @@ C(b): r
 
             <div class="section">
                 <h3>
-                    📊 Informations du Cadre
+                    Informations du Cadre
                     <span class="function-source">parse_aba_input()</span>
                 </h3>
                 <div class="framework-info">
@@ -427,6 +386,11 @@ C(b): r
                         <div class="sub-section">
                             <h5>Contraires Originaux</h5>
                             <div class="contraries-list" id="originalContraries"></div>
+                        </div>
+
+                        <div class="sub-section">
+                            <h5>Règles Originales</h5>
+                            <div class="rules-list" id="originalRules"></div>
                         </div>
                     </div>
                     <div class="info-card" id="atomicFrameworkCard">
@@ -446,14 +410,14 @@ C(b): r
                 </div>
 
                 <div class="sub-section" id="atomicRulesSection">
-                    <h4>📝 Règles du Cadre Atomique</h4>
+                    <h4>Règles du Cadre Atomique</h4>
                     <div class="rules-list" id="rulesList"></div>
                 </div>
             </div>
 
             <div class="section">
                 <h3>
-                    🎯 Arguments Générés
+                    Arguments Générés
                     <span class="function-source">generate_arguments_optimized()</span>
                 </h3>
                 <div class="arguments-grid" id="argumentsGrid"></div>
@@ -461,7 +425,7 @@ C(b): r
 
             <div class="section">
                 <h3>
-                    ⚔️ Attaques Normales (ABA+)
+                    Attaques Normales (ABA+)
                     <span class="function-source">compute_normal_attacks()</span>
                 </h3>
                 <div class="attack-list" id="normalAttacksList"></div>
@@ -469,7 +433,7 @@ C(b): r
 
             <div class="section">
                 <h3>
-                    🔄 Attaques Inverses (ABA+)
+                    Attaques Inverses (ABA+)
                     <span class="function-source">compute_reverse_attacks()</span>
                 </h3>
                 <div class="attack-list" id="reverseAttacksList"></div>
@@ -477,16 +441,16 @@ C(b): r
 
             <div class="section">
                 <h3>
-                    📈 Attaques Standard (ABA simple)
+                    Attaques Standard (ABA simple)
                     <span class="function-source">compute_standard_attacks()</span>
                 </h3>
                 <div class="attack-list" id="standardAttacksList"></div>
             </div>
 
-            <!--détails de transformation-->
+            <!-- Détails de transformation -->
             <div class="section" id="transformationDetailsSection" style="display: none;">
                 <h3>
-                    📋 Détails de la Transformation Non-Circulaire
+                    Détails de la Transformation
                     <span class="function-source">convert_to_non_circular()</span>
                 </h3>
                 
@@ -525,7 +489,8 @@ C(b): r
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             const warningMessage = document.getElementById('warningMessage');
-            const transformButton = document.getElementById('transformButton');
+            const transformNonCircularButton = document.getElementById('transformNonCircularButton');
+            const transformAtomicButton = document.getElementById('transformAtomicButton');
             const circularSection = document.getElementById('circularSection');
             const transformationSection = document.getElementById('transformationSection');
 
@@ -551,44 +516,44 @@ C(b): r
                     displayResults(data);
                     
                     if (data.is_circular) {
-                        warningMessage.textContent = '⚠️ Le cadre ABA est CIRCULAIRE. La transformation atomique ne peut pas être appliquée.';
+                        warningMessage.textContent = 'Le cadre ABA est CIRCULAIRE. La transformation atomique ne peut pas être appliquée directement.';
                         warningMessage.style.display = 'block';
-                        transformButton.style.display = 'inline-block';
+                        transformNonCircularButton.style.display = 'inline-block';
+                        transformAtomicButton.style.display = 'inline-block';
                         circularSection.style.display = 'block';
                         displayCircularDependencies(data.circular_dependencies);
                     } else {
-                        successMessage.textContent = '✅ Cadre ABA non-circulaire - Analyse terminée avec succès!';
+                        successMessage.textContent = 'Cadre ABA non-circulaire - Analyse terminée avec succès!';
                         successMessage.style.display = 'block';
-                        transformButton.style.display = 'none';
+                        transformNonCircularButton.style.display = 'none';
+                        transformAtomicButton.style.display = 'none';
                     }
                     
                     results.style.display = 'block';
                 } else {
-                    errorMessage.textContent = '❌ Erreur: ' + data.error;
+                    errorMessage.textContent = 'Erreur: ' + data.error;
                     errorMessage.style.display = 'block';
                 }
             })
             .catch(error => {
                 loading.style.display = 'none';
-                errorMessage.textContent = '❌ Erreur de connexion: ' + error;
+                errorMessage.textContent = 'Erreur de connexion: ' + error;
                 errorMessage.style.display = 'block';
             });
         }
 
-        function transformABA() {
+        function transformNonCircularABA() {
             const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             const warningMessage = document.getElementById('warningMessage');
-            const transformButton = document.getElementById('transformButton');
             const transformationSection = document.getElementById('transformationSection');
 
             loading.style.display = 'block';
             errorMessage.style.display = 'none';
             warningMessage.style.display = 'none';
 
-            fetch('/transform', {
+            fetch('/transform_non_circular', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -601,20 +566,58 @@ C(b): r
                 
                 if (data.success) {
                     displayResults(data);
-                    successMessage.textContent = '✅ Transformation en cadre non-circulaire réussie!';
+                    successMessage.textContent = 'Transformation en cadre non-circulaire réussie!';
                     successMessage.style.display = 'block';
-                    transformButton.style.display = 'none';
                     transformationSection.style.display = 'block';
                     displayTransformationInfo(data.transformation_info);
-                    results.style.display = 'block';
                 } else {
-                    errorMessage.textContent = '❌ Erreur lors de la transformation: ' + data.error;
+                    errorMessage.textContent = 'Erreur lors de la transformation: ' + data.error;
                     errorMessage.style.display = 'block';
                 }
             })
             .catch(error => {
                 loading.style.display = 'none';
-                errorMessage.textContent = '❌ Erreur de connexion: ' + error;
+                errorMessage.textContent = 'Erreur de connexion: ' + error;
+                errorMessage.style.display = 'block';
+            });
+        }
+
+        function transformAtomicABA() {
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const warningMessage = document.getElementById('warningMessage');
+            const transformationSection = document.getElementById('transformationSection');
+
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
+
+            fetch('/transform_atomic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({aba_text: currentABAText})
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data);
+                    successMessage.textContent = 'Transformation en cadre atomique réussie!';
+                    successMessage.style.display = 'block';
+                    transformationSection.style.display = 'block';
+                    displayTransformationInfo(data.transformation_info);
+                } else {
+                    errorMessage.textContent = 'Erreur lors de la transformation: ' + data.error;
+                    errorMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                errorMessage.textContent = 'Erreur de connexion: ' + error;
                 errorMessage.style.display = 'block';
             });
         }
@@ -640,12 +643,24 @@ C(b): r
             const element = document.getElementById('transformationInfo');
             element.innerHTML = '';
             
-            const items = [
-                `k = |L \\ A| = ${info.k_value}`,
-                `Non-assomptions originaux: ${info.non_assumptions.join(', ')}`,
-                `Langage original: ${info.original_language_size} symboles → ${info.transformed_language_size} symboles`,
-                `Règles originales: ${info.original_rules_count} règles → ${info.transformed_rules_count} règles`
-            ];
+            let items = [];
+            
+            if (info.transformation_type === 'non_circular') {
+                items = [
+                    `k = |L \\ A| = ${info.k_value}`,
+                    `Non-assomptions originaux: ${info.non_assumptions.join(', ')}`,
+                    `Langage original: ${info.original_language_size} symboles → ${info.transformed_language_size} symboles`,
+                    `Règles originales: ${info.original_rules_count} règles → ${info.transformed_rules_count} règles`
+                ];
+            } else if (info.transformation_type === 'atomic') {
+                items = [
+                    `Transformation: Cadre original → Cadre atomique`,
+                    `Langage original: ${info.original_language_size} symboles → ${info.atomic_language_size} symboles`,
+                    `Assomptions originales: ${info.original_assumptions_count} → ${info.atomic_assumptions_count}`,
+                    `Règles originales: ${info.original_rules_count} → ${info.atomic_rules_count}`,
+                    `Nouvelles assomptions: ${info.new_assumptions.join(', ')}`
+                ];
+            }
             
             items.forEach(item => {
                 const transformItem = document.createElement('div');
@@ -656,7 +671,7 @@ C(b): r
         }
 
         function displayResults(data) {
-            console.log('Données reçues:', data); // DEBUG
+            console.log('Données reçues:', data);
             
             // Update statistics if available
             if (data.arguments) {
@@ -678,6 +693,9 @@ C(b): r
 
             // Display original contraries
             displayContraries('originalContraries', data.framework_info.original_contraries);
+
+            // Display original rules
+            displayRules('originalRules', data.framework_info.original_rules);
 
             // Gestion de l'affichage du cadre atomique
             const atomicFrameworkCard = document.getElementById('atomicFrameworkCard');
@@ -779,24 +797,6 @@ C(b): r
                 contraryItem.className = 'contrary-item';
                 contraryItem.innerHTML = `<strong>C(${assumption})</strong> = ${contrary}`;
                 element.appendChild(contraryItem);
-            });
-        }
-
-        function displayRules(rules) {
-            const element = document.getElementById('rulesList');
-            element.innerHTML = '';
-            
-            if (!rules || rules.length === 0) {
-                element.innerHTML = '<p>Aucune règle définie.</p>';
-                return;
-            }
-
-            rules.forEach(rule => {
-                const ruleItem = document.createElement('div');
-                ruleItem.className = 'rule-item';
-                const premises = rule.premises.length > 0 ? rule.premises.join(', ') : '∅';
-                ruleItem.innerHTML = `<strong>${rule.name}:</strong> ${rule.conclusion} ← ${premises}`;
-                element.appendChild(ruleItem);
             });
         }
 
