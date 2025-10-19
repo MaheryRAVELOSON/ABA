@@ -127,7 +127,7 @@
             border-radius: 10px;
             padding: 20px;
             overflow-y: auto;
-            max-height: 500px;
+            max-height: 600px;
         }
 
         .stat-card {
@@ -151,9 +151,10 @@
             color: #764ba2;
         }
 
-        .arguments-list {
-            max-height: 300px;
+        .arguments-list, .attacks-list {
+            max-height: 200px;
             overflow-y: auto;
+            margin-top: 10px;
         }
 
         .argument-item {
@@ -173,6 +174,17 @@
             border-radius: 8px;
             border-left: 3px solid #ffc107;
             font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .reverse-attack {
+            background: #ffe6e6;
+            border-left-color: #dc3545;
+        }
+
+        .normal-attack {
+            background: #e6ffe6;
+            border-left-color: #28a745;
         }
 
         .loading {
@@ -215,6 +227,57 @@
             font-family: 'Courier New', monospace;
         }
 
+        .example-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .example-btn:hover {
+            background: #218838;
+        }
+
+        .framework-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -240,6 +303,8 @@
                     <strong>C(x):</strong> Contrary of assumption x<br>
                     <strong>[rule]:</strong> conclusion <- premises<br>
                     <strong>PREF:</strong> Preferences (e.g., <code>a > b</code> or <code>a,b > c</code>)</p>
+                    
+                    <button class="example-btn" onclick="loadExample()">📋 Load Example</button>
                 </div>
 
                 <div class="input-area">
@@ -274,15 +339,43 @@ PREF: a > b</textarea>
     </div>
 
     <script>
+        function loadExample() {
+            const example = `L: [a,b,c,q,p,r,s,t]
+A: [a,b,c]
+C(a): r
+C(b): s
+C(c): t
+[r1]: p <- q,a
+[r2]: q <- 
+[r3]: r <- b,c
+[r4]: t <- p,c
+[r5]: s <- t
+PREF: a > b`;
+            document.getElementById('abaInput').value = example;
+        }
+
         async function processABA() {
             const input = document.getElementById('abaInput').value;
             const output = document.getElementById('output');
+            
+            if (!input.trim()) {
+                output.innerHTML = `
+                    <div class="stat-card" style="border-left-color: #ffc107;">
+                        <h3>⚠️ Warning</h3>
+                        <p>Please enter an ABA framework first.</p>
+                    </div>
+                `;
+                return;
+            }
             
             // Show loading
             output.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Processing ABA framework...</p>
+                    <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
+                        Generating arguments and computing attacks...
+                    </p>
                 </div>
             `;
 
@@ -310,8 +403,9 @@ PREF: a > b</textarea>
             } catch (error) {
                 output.innerHTML = `
                     <div class="stat-card" style="border-left-color: #dc3545;">
-                        <h3>❌ Error</h3>
-                        <p style="color: #dc3545;">Failed to process: ${error.message}</p>
+                        <h3>❌ Connection Error</h3>
+                        <p style="color: #dc3545;">Failed to connect to server: ${error.message}</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Make sure the Flask server is running.</p>
                     </div>
                 `;
             }
@@ -321,21 +415,17 @@ PREF: a > b</textarea>
             const output = document.getElementById('output');
             
             let html = `
+                <div class="framework-info">
+                    <strong>Framework Info:</strong><br>
+                    Original Assumptions: ${data.framework_info.original_assumptions.join(', ')}<br>
+                    Atomic Assumptions: ${data.framework_info.atomic_assumptions.length}<br>
+                    Rules: ${data.framework_info.rules_count}<br>
+                    Preferences: ${data.framework_info.preferences.length > 0 ? data.framework_info.preferences.map(p => `${p[0]} > ${p[1]}`).join(', ') : 'None'}
+                </div>
+
                 <div class="stat-card">
                     <h3>✅ Generated Arguments</h3>
                     <div class="stat-number">${data.arguments.length}</div>
-                </div>
-
-                <div class="stat-card">
-                    <h3>⚔️ Attack Statistics</h3>
-                    <p><strong>Standard Attacks:</strong> ${data.attacks.standard}</p>
-                    <p><strong>Normal Attacks (ABA+):</strong> ${data.attacks.normal}</p>
-                    <p><strong>Reverse Attacks (ABA+):</strong> ${data.attacks.reverse}</p>
-                    <p><strong>Total ABA+ Attacks:</strong> ${data.attacks.total_aba_plus}</p>
-                </div>
-
-                <div class="stat-card">
-                    <h3>📋 Arguments List</h3>
                     <div class="arguments-list">
             `;
 
@@ -352,35 +442,76 @@ PREF: a > b</textarea>
                 </div>
 
                 <div class="stat-card">
-                    <h3>🎯 Normal Attacks</h3>
+                    <h3>⚔️ Attack Statistics</h3>
+                    <p><strong>Standard Attacks:</strong> ${data.attacks.standard}</p>
+                    <p><strong>Normal Attacks (ABA+):</strong> ${data.attacks.normal}</p>
+                    <p><strong>Reverse Attacks (ABA+):</strong> ${data.attacks.reverse}</p>
+                    <p><strong style="color: #764ba2;">Total ABA+ Attacks:</strong> ${data.attacks.total_aba_plus}</p>
+                </div>
+
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('normal-attacks')">Normal Attacks</button>
+                    <button class="tab-button" onclick="switchTab('reverse-attacks')">Reverse Attacks</button>
+                </div>
+
+                <div id="normal-attacks" class="tab-content active">
+                    <div class="stat-card">
+                        <h3>🎯 Normal Attacks</h3>
+                        <div class="attacks-list">
             `;
 
             if (data.attack_details.normal.length > 0) {
                 data.attack_details.normal.forEach(attack => {
-                    html += `<div class="attack-item">${attack}</div>`;
+                    html += `<div class="attack-item normal-attack">${attack}</div>`;
                 });
             } else {
-                html += `<p style="color: #999;">No normal attacks found</p>`;
+                html += `<p style="color: #999; padding: 10px;">No normal attacks found</p>`;
             }
 
             html += `
+                        </div>
+                    </div>
                 </div>
 
-                <div class="stat-card">
-                    <h3>🔄 Reverse Attacks</h3>
+                <div id="reverse-attacks" class="tab-content">
+                    <div class="stat-card">
+                        <h3>🔄 Reverse Attacks</h3>
+                        <div class="attacks-list">
             `;
 
             if (data.attack_details.reverse.length > 0) {
                 data.attack_details.reverse.forEach(attack => {
-                    html += `<div class="attack-item">${attack}</div>`;
+                    html += `<div class="attack-item reverse-attack">${attack}</div>`;
                 });
             } else {
-                html += `<p style="color: #999;">No reverse attacks found</p>`;
+                html += `<p style="color: #999; padding: 10px;">No reverse attacks found</p>`;
             }
 
-            html += `</div>`;
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
 
             output.innerHTML = html;
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activate clicked button
+            event.target.classList.add('active');
         }
 
         function clearAll() {
