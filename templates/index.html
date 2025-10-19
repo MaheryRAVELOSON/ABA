@@ -1,139 +1,826 @@
-function displayResults(data) {
-    const output = document.getElementById('output');
-    
-    let html = `
-        <div class="framework-info">
-            <strong>Framework Info:</strong><br>
-            Original Assumptions: ${data.framework_info.original_assumptions.join(', ')}<br>
-            Atomic Assumptions: ${data.framework_info.atomic_assumptions.length}<br>
-            Rules: ${data.framework_info.rules_count}<br>
-            Preferences: ${data.framework_info.preferences.length > 0 ? data.framework_info.preferences.map(p => `${p[0]} > ${p[1]}`).join(', ') : 'None'}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABA+ Framework Analyzer</title>
+    <style>
+        :root {
+            --rainbow-1: #ff6b6b;
+            --rainbow-2: #ffa500;
+            --rainbow-3: #ffd93d;
+            --rainbow-4: #6bcf7f;
+            --rainbow-5: #4d96ff;
+            --rainbow-6: #9d4edd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, 
+                var(--rainbow-1) 0%, 
+                var(--rainbow-2) 20%, 
+                var(--rainbow-3) 40%, 
+                var(--rainbow-4) 60%, 
+                var(--rainbow-5) 80%, 
+                var(--rainbow-6) 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            background: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-2), 
+                var(--rainbow-3), 
+                var(--rainbow-4), 
+                var(--rainbow-5), 
+                var(--rainbow-6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            margin-bottom: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 3px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-2), 
+                var(--rainbow-3), 
+                var(--rainbow-4), 
+                var(--rainbow-5), 
+                var(--rainbow-6)) 1;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        button {
+            background: linear-gradient(135deg, 
+                var(--rainbow-4), 
+                var(--rainbow-5));
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-right: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, 
+                var(--rainbow-5), 
+                var(--rainbow-6));
+        }
+        .button-danger {
+            background: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-2));
+        }
+        .button-danger:hover {
+            background: linear-gradient(135deg, 
+                var(--rainbow-2), 
+                var(--rainbow-1));
+        }
+        .button-success {
+            background: linear-gradient(135deg, 
+                var(--rainbow-4), 
+                var(--rainbow-3));
+        }
+        .button-success:hover {
+            background: linear-gradient(135deg, 
+                var(--rainbow-3), 
+                var(--rainbow-4));
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .section {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border-left: 6px solid;
+            border-image: linear-gradient(to bottom, 
+                var(--rainbow-1), 
+                var(--rainbow-2), 
+                var(--rainbow-3), 
+                var(--rainbow-4), 
+                var(--rainbow-5), 
+                var(--rainbow-6)) 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .section h3 {
+            background: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-3), 
+                var(--rainbow-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .function-source {
+            font-size: 0.8em;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .arguments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .argument-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-4), 
+                var(--rainbow-5)) 1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .argument-card:hover {
+            transform: translateY(-3px);
+        }
+        .attack-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-2), 
+                var(--rainbow-3)) 1;
+        }
+        .attack-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 5px;
+            border-left: 4px solid var(--rainbow-1);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-2), 
+                var(--rainbow-3), 
+                var(--rainbow-4), 
+                var(--rainbow-5), 
+                var(--rainbow-6)) 1;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, 
+                var(--rainbow-1), 
+                var(--rainbow-3), 
+                var(--rainbow-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .error {
+            background: var(--rainbow-1);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 6px solid #c44569;
+        }
+        .success {
+            background: var(--rainbow-4);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 6px solid #27ae60;
+        }
+        .warning {
+            background: var(--rainbow-2);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 6px solid #f39c12;
+        }
+        .framework-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-3), 
+                var(--rainbow-4)) 1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .rules-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-5), 
+                var(--rainbow-6)) 1;
+        }
+        .rule-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f8f9fa, #e3f2fd);
+            border-radius: 5px;
+            border-left: 4px solid var(--rainbow-5);
+            font-family: 'Courier New', monospace;
+        }
+        .contraries-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, 
+                var(--rainbow-6), 
+                var(--rainbow-1)) 1;
+        }
+        .contrary-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #f8f9fa, #f3e5f5);
+            border-radius: 5px;
+            border-left: 4px solid var(--rainbow-6);
+        }
+        .sub-section {
+            margin-top: 15px;
+        }
+        .circular-dependencies {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--rainbow-1);
+            margin-bottom: 15px;
+        }
+        .cycle-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 5px;
+            border-left: 4px solid var(--rainbow-1);
+            font-family: 'Courier New', monospace;
+        }
+        .transformation-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--rainbow-4);
+            margin-bottom: 15px;
+        }
+        .transform-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #dfe6e9, #b2bec3);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌈 ABA+ Framework Analyzer</h1>
+        
+        <div class="input-section">
+            <h3>🎯 Entrez votre cadre ABA :</h3>
+            <textarea id="abaInput" placeholder="L: [a,b,c,q,p,r,s,t]
+A: [a,b,c]
+C(a): r
+C(b): s
+C(c): t
+[r1]: p <- q,a
+[r2]: q <-
+[r3]: r <- b,c
+[r4]: t <- p,c
+[r5]: s <- t
+PREF: a > b">L: [a,b,p,q,r]
+A: [a,b]
+C(a): r
+C(b): r
+[r1]: p <- q
+[r4]: a <- b
+[r5]: b <- a
+[r2]: q <- p
+[r3]: r <- a,b</textarea>
+            <button onclick="processABA()">🚀 Analyser le Cadre ABA</button>
+            <button id="transformButton" class="button-danger" onclick="transformABA()" style="display: none;">🔄 Transformer en Non-Circulaire</button>
         </div>
 
-        <div class="tab-buttons">
-            <button class="tab-button active" onclick="switchTab('results')">Résultats</button>
-            <button class="tab-button" onclick="switchTab('conversion')">Conversion Atomique</button>
-            <button class="tab-button" onclick="switchTab('arguments-gen')">Génération Arguments</button>
-            <button class="tab-button" onclick="switchTab('attacks')">Calcul Attaques</button>
+        <div id="loading" class="loading">
+            <p>⏳ Analyse en cours...</p>
         </div>
 
-        <!-- TAB 1: RÉSULTATS -->
-        <div id="results" class="tab-content active">
-            <div class="stat-card">
-                <h3>✅ Generated Arguments</h3>
-                <div class="stat-number">${data.arguments.length}</div>
-                <div class="arguments-list">
-    `;
+        <div id="results" class="results" style="display: none;">
+            <div id="successMessage" class="success"></div>
+            <div id="warningMessage" class="warning" style="display: none;"></div>
+            <div id="errorMessage" class="error" style="display: none;"></div>
 
-    data.arguments.forEach(arg => {
-        html += `
-            <div class="argument-item">
-                <strong>Arg ${arg.id}:</strong> (${arg.conclusion}, {${arg.support.join(', ')}})
+            <!-- Circular Dependencies Section -->
+            <div id="circularSection" class="section" style="display: none;">
+                <h3>
+                    🔄 Dépendances Circulaires Détectées
+                    <span class="function-source">is_circular() + get_circular_dependencies()</span>
+                </h3>
+                <div class="circular-dependencies" id="circularDependencies"></div>
             </div>
-        `;
-    });
 
-    html += `
+            <!-- Transformation Info Section -->
+            <div id="transformationSection" class="section" style="display: none;">
+                <h3>
+                    🛠️ Détails de la Transformation
+                    <span class="function-source">convert_to_non_circular()</span>
+                </h3>
+                <div class="transformation-info" id="transformationInfo"></div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalArguments">0</div>
+                    <div>Arguments Générés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAttacks">0</div>
+                    <div>Attaques ABA+ Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="normalAttacks">0</div>
+                    <div>Attaques Normales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="reverseAttacks">0</div>
+                    <div>Attaques Inverses</div>
                 </div>
             </div>
 
-            <div class="stat-card">
-                <h3>⚔️ Attack Statistics</h3>
-                <p><strong>Standard Attacks:</strong> ${data.attacks.standard}</p>
-                <p><strong>Normal Attacks (ABA+):</strong> ${data.attacks.normal}</p>
-                <p><strong>Reverse Attacks (ABA+):</strong> ${data.attacks.reverse}</p>
-                <p><strong style="color: #764ba2;">Total ABA+ Attacks:</strong> ${data.attacks.total_aba_plus}</p>
-            </div>
+            <div class="section">
+                <h3>
+                    📊 Informations du Cadre
+                    <span class="function-source">parse_aba_input()</span>
+                </h3>
+                <div class="framework-info">
+                    <div class="info-card">
+                        <h4>Cadre Original</h4>
+                        <p><strong>Langage:</strong> <span id="originalLanguage"></span></p>
+                        <p><strong>Assomptions:</strong> <span id="originalAssumptions"></span></p>
+                        <p><strong>Préférences:</strong> <span id="preferences"></span></p>
+                        
+                        <div class="sub-section">
+                            <h5>Contraires Originaux</h5>
+                            <div class="contraries-list" id="originalContraries"></div>
+                        </div>
+                    </div>
+                    <div class="info-card" id="atomicFrameworkCard">
+                        <h4>
+                            Cadre Atomique
+                            <span class="function-source">convert_to_atomic()</span>
+                        </h4>
+                        <p><strong>Langage:</strong> <span id="atomicLanguage"></span></p>
+                        <p><strong>Assomptions:</strong> <span id="atomicAssumptions"></span></p>
+                        <p><strong>Règles:</strong> <span id="rulesCount"></span></p>
+                        
+                        <div class="sub-section">
+                            <h5>Contraires Atomiques</h5>
+                            <div class="contraries-list" id="atomicContraries"></div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="stat-card">
-                <h3>🎯 Normal Attacks</h3>
-                <div class="attacks-list">
-    `;
-
-    if (data.attack_details.normal.length > 0) {
-        data.attack_details.normal.forEach(attack => {
-            html += `<div class="attack-item normal-attack">${attack}</div>`;
-        });
-    } else {
-        html += `<p style="color: #999; padding: 10px;">No normal attacks found</p>`;
-    }
-
-    html += `
+                <div class="sub-section" id="atomicRulesSection">
+                    <h4>📝 Règles du Cadre Atomique</h4>
+                    <div class="rules-list" id="rulesList"></div>
                 </div>
             </div>
 
-            <div class="stat-card">
-                <h3>🔄 Reverse Attacks</h3>
-                <div class="attacks-list">
-    `;
+            <div class="section">
+                <h3>
+                    🎯 Arguments Générés
+                    <span class="function-source">generate_arguments_optimized()</span>
+                </h3>
+                <div class="arguments-grid" id="argumentsGrid"></div>
+            </div>
 
-    if (data.attack_details.reverse.length > 0) {
-        data.attack_details.reverse.forEach(attack => {
-            html += `<div class="attack-item reverse-attack">${attack}</div>`;
-        });
-    } else {
-        html += `<p style="color: #999; padding: 10px;">No reverse attacks found</p>`;
-    }
+            <div class="section">
+                <h3>
+                    ⚔️ Attaques Normales (ABA+)
+                    <span class="function-source">compute_normal_attacks()</span>
+                </h3>
+                <div class="attack-list" id="normalAttacksList"></div>
+            </div>
 
-    html += `
+            <div class="section">
+                <h3>
+                    🔄 Attaques Inverses (ABA+)
+                    <span class="function-source">compute_reverse_attacks()</span>
+                </h3>
+                <div class="attack-list" id="reverseAttacksList"></div>
+            </div>
+
+            <div class="section">
+                <h3>
+                    📈 Attaques Standard (ABA simple)
+                    <span class="function-source">compute_standard_attacks()</span>
+                </h3>
+                <div class="attack-list" id="standardAttacksList"></div>
+            </div>
+
+            <!--détails de transformation-->
+            <div class="section" id="transformationDetailsSection" style="display: none;">
+                <h3>
+                    📋 Détails de la Transformation Non-Circulaire
+                    <span class="function-source">convert_to_non_circular()</span>
+                </h3>
+                
+                <div class="framework-info">
+                    <div class="info-card">
+                        <h4>Cadre Original</h4>
+                        <p><strong>Assomptions:</strong> <span id="transformationOriginalAssumptions"></span></p>
+                        <p><strong>Règles Originales:</strong> <span id="transformationOriginalRulesCount"></span></p>
+                        <div class="sub-section">
+                            <h5>Règles Détaillées</h5>
+                            <div class="rules-list" id="transformationOriginalRules"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h4>Cadre Transformé</h4>
+                        <p><strong>Nouvelles Assomptions:</strong> <span id="transformationNewAssumptions"></span></p>
+                        <p><strong>Nouvelles Règles:</strong> <span id="transformationNewRulesCount"></span></p>
+                        <div class="sub-section">
+                            <h5>Règles Transformées</h5>
+                            <div class="rules-list" id="transformationNewRules"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- TAB 2: CONVERSION ATOMIQUE -->
-        <div id="conversion" class="tab-content">
-            <div class="stat-card">
-                <h3>🔄 Conversion Atomique</h3>
-                <div class="arguments-list" style="max-height: 400px;">
-    `;
+    <script>
+        let currentABAText = '';
 
-    if (data.debug_info && data.debug_info.conversion_steps) {
-        data.debug_info.conversion_steps.forEach(step => {
-            html += `<div class="argument-item" style="font-size: 12px; padding: 8px;">${step}</div>`;
-        });
-    }
+        function processABA() {
+            currentABAText = document.getElementById('abaInput').value;
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const warningMessage = document.getElementById('warningMessage');
+            const transformButton = document.getElementById('transformButton');
+            const circularSection = document.getElementById('circularSection');
+            const transformationSection = document.getElementById('transformationSection');
 
-    html += `
-                </div>
-            </div>
-        </div>
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            errorMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
+            circularSection.style.display = 'none';
+            transformationSection.style.display = 'none';
 
-        <!-- TAB 3: GÉNÉRATION D'ARGUMENTS -->
-        <div id="arguments-gen" class="tab-content">
-            <div class="stat-card">
-                <h3>🏗️ Génération des Arguments</h3>
-                <div class="arguments-list" style="max-height: 400px;">
-    `;
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({aba_text: currentABAText})
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data);
+                    
+                    if (data.is_circular) {
+                        warningMessage.textContent = '⚠️ Le cadre ABA est CIRCULAIRE. La transformation atomique ne peut pas être appliquée.';
+                        warningMessage.style.display = 'block';
+                        transformButton.style.display = 'inline-block';
+                        circularSection.style.display = 'block';
+                        displayCircularDependencies(data.circular_dependencies);
+                    } else {
+                        successMessage.textContent = '✅ Cadre ABA non-circulaire - Analyse terminée avec succès!';
+                        successMessage.style.display = 'block';
+                        transformButton.style.display = 'none';
+                    }
+                    
+                    results.style.display = 'block';
+                } else {
+                    errorMessage.textContent = '❌ Erreur: ' + data.error;
+                    errorMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                errorMessage.textContent = '❌ Erreur de connexion: ' + error;
+                errorMessage.style.display = 'block';
+            });
+        }
 
-    if (data.debug_info && data.debug_info.argument_generation) {
-        data.debug_info.argument_generation.forEach(step => {
-            html += `<div class="argument-item" style="font-size: 12px; padding: 8px;">${step}</div>`;
-        });
-    }
+        function transformABA() {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const warningMessage = document.getElementById('warningMessage');
+            const transformButton = document.getElementById('transformButton');
+            const transformationSection = document.getElementById('transformationSection');
 
-    html += `
-                </div>
-            </div>
-        </div>
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            warningMessage.style.display = 'none';
 
-        <!-- TAB 4: CALCUL DES ATTAQUES -->
-        <div id="attacks" class="tab-content">
-            <div class="stat-card">
-                <h3>⚔️ Calcul des Attaques</h3>
-                <div class="arguments-list" style="max-height: 400px;">
-    `;
+            fetch('/transform', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({aba_text: currentABAText})
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data);
+                    successMessage.textContent = '✅ Transformation en cadre non-circulaire réussie!';
+                    successMessage.style.display = 'block';
+                    transformButton.style.display = 'none';
+                    transformationSection.style.display = 'block';
+                    displayTransformationInfo(data.transformation_info);
+                    results.style.display = 'block';
+                } else {
+                    errorMessage.textContent = '❌ Erreur lors de la transformation: ' + data.error;
+                    errorMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                errorMessage.textContent = '❌ Erreur de connexion: ' + error;
+                errorMessage.style.display = 'block';
+            });
+        }
 
-    if (data.debug_info && data.debug_info.attack_computation) {
-        data.debug_info.attack_computation.forEach(step => {
-            html += `<div class="argument-item" style="font-size: 12px; padding: 8px;">${step}</div>`;
-        });
-    }
+        function displayCircularDependencies(dependencies) {
+            const element = document.getElementById('circularDependencies');
+            element.innerHTML = '';
+            
+            if (dependencies.length === 0) {
+                element.innerHTML = '<p>Aucune circularité détectée.</p>';
+                return;
+            }
 
-    html += `
-                </div>
-            </div>
-        </div>
-    `;
+            dependencies.forEach((cycle, index) => {
+                const cycleItem = document.createElement('div');
+                cycleItem.className = 'cycle-item';
+                cycleItem.innerHTML = `<strong>Cycle ${index + 1}:</strong> ${cycle.join(' → ')} → ${cycle[0]}`;
+                element.appendChild(cycleItem);
+            });
+        }
 
-    output.innerHTML = html;
-}
+        function displayTransformationInfo(info) {
+            const element = document.getElementById('transformationInfo');
+            element.innerHTML = '';
+            
+            const items = [
+                `k = |L \\ A| = ${info.k_value}`,
+                `Non-assomptions originaux: ${info.non_assumptions.join(', ')}`,
+                `Langage original: ${info.original_language_size} symboles → ${info.transformed_language_size} symboles`,
+                `Règles originales: ${info.original_rules_count} règles → ${info.transformed_rules_count} règles`
+            ];
+            
+            items.forEach(item => {
+                const transformItem = document.createElement('div');
+                transformItem.className = 'transform-item';
+                transformItem.textContent = item;
+                element.appendChild(transformItem);
+            });
+        }
+
+        function displayResults(data) {
+            console.log('Données reçues:', data); // DEBUG
+            
+            // Update statistics if available
+            if (data.arguments) {
+                document.getElementById('totalArguments').textContent = data.arguments.length;
+                document.getElementById('totalAttacks').textContent = data.attacks.total_aba_plus;
+                document.getElementById('normalAttacks').textContent = data.attacks.normal;
+                document.getElementById('reverseAttacks').textContent = data.attacks.reverse;
+            } else {
+                document.getElementById('totalArguments').textContent = '0';
+                document.getElementById('totalAttacks').textContent = '0';
+                document.getElementById('normalAttacks').textContent = '0';
+                document.getElementById('reverseAttacks').textContent = '0';
+            }
+
+            // Update framework info
+            document.getElementById('originalLanguage').textContent = data.framework_info.original_language.join(', ');
+            document.getElementById('originalAssumptions').textContent = data.framework_info.original_assumptions.join(', ');
+            document.getElementById('preferences').textContent = data.framework_info.preferences.map(p => `${p[0]} > ${p[1]}`).join(', ');
+
+            // Display original contraries
+            displayContraries('originalContraries', data.framework_info.original_contraries);
+
+            // Gestion de l'affichage du cadre atomique
+            const atomicFrameworkCard = document.getElementById('atomicFrameworkCard');
+            const atomicRulesSection = document.getElementById('atomicRulesSection');
+            
+            if (data.atomic_framework) {
+                // Afficher le cadre atomique
+                atomicFrameworkCard.style.display = 'block';
+                atomicRulesSection.style.display = 'block';
+                
+                document.getElementById('atomicLanguage').textContent = data.atomic_framework.language.join(', ');
+                document.getElementById('atomicAssumptions').textContent = data.atomic_framework.assumptions.join(', ');
+                document.getElementById('rulesCount').textContent = data.atomic_framework.rules_count;
+                displayContraries('atomicContraries', data.atomic_framework.contraries);
+                displayRules('rulesList', data.atomic_framework.rules);
+            } else {
+                // Cacher le cadre atomique
+                atomicFrameworkCard.style.display = 'none';
+                atomicRulesSection.style.display = 'none';
+            }
+
+            // Display arguments if available
+            const argumentsGrid = document.getElementById('argumentsGrid');
+            argumentsGrid.innerHTML = '';
+            if (data.arguments && data.arguments.length > 0) {
+                data.arguments.forEach(arg => {
+                    const argumentCard = document.createElement('div');
+                    argumentCard.className = 'argument-card';
+                    argumentCard.innerHTML = `
+                        <strong>Argument ${arg.id}</strong><br>
+                        <strong>Conclusion:</strong> ${arg.conclusion}<br>
+                        <strong>Support:</strong> {${arg.support.join(', ')}}
+                    `;
+                    argumentsGrid.appendChild(argumentCard);
+                });
+            } else {
+                argumentsGrid.innerHTML = '<p>Aucun argument généré (cadre circulaire ou transformation nécessaire)</p>';
+            }
+
+            // Display attacks if available
+            if (data.attack_details) {
+                displayAttackList('normalAttacksList', data.attack_details.normal);
+                displayAttackList('reverseAttacksList', data.attack_details.reverse);
+                displayAttackList('standardAttacksList', data.attack_details.standard);
+            } else {
+                document.getElementById('normalAttacksList').innerHTML = '<p>Aucune attaque calculée (cadre circulaire)</p>';
+                document.getElementById('reverseAttacksList').innerHTML = '<p>Aucune attaque calculée (cadre circulaire)</p>';
+                document.getElementById('standardAttacksList').innerHTML = '<p>Aucune attaque calculée (cadre circulaire)</p>';
+            }
+            
+            // Afficher les détails de transformation si disponibles
+            const transformationDetailsSection = document.getElementById('transformationDetailsSection');
+            if (data.transformation_info) {
+                transformationDetailsSection.style.display = 'block';
+                
+                // Afficher les détails de transformation
+                document.getElementById('transformationOriginalAssumptions').textContent = data.transformation_info.original_assumptions.join(', ');
+                document.getElementById('transformationNewAssumptions').textContent = data.transformation_info.transformed_assumptions.join(', ');
+                document.getElementById('transformationOriginalRulesCount').textContent = data.transformation_info.original_rules_count;
+                document.getElementById('transformationNewRulesCount').textContent = data.transformation_info.transformed_rules_count;
+                
+                // Afficher les règles détaillées
+                displayRules('transformationOriginalRules', data.transformation_info.original_rules);
+                displayRules('transformationNewRules', data.transformation_info.transformed_rules);
+            } else {
+                transformationDetailsSection.style.display = 'none';
+            }
+        }
+
+        function displayRules(elementId, rules) {
+            const element = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+            element.innerHTML = '';
+            
+            if (!rules || rules.length === 0) {
+                element.innerHTML = '<p>Aucune règle définie.</p>';
+                return;
+            }
+
+            rules.forEach(rule => {
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'rule-item';
+                const premises = rule.premises.length > 0 ? rule.premises.join(', ') : '∅';
+                ruleItem.innerHTML = `<strong>${rule.name}:</strong> ${rule.conclusion} ← ${premises}`;
+                element.appendChild(ruleItem);
+            });
+        }
+
+        function displayContraries(elementId, contraries) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '';
+            
+            if (Object.keys(contraries).length === 0) {
+                element.innerHTML = '<p>Aucun contraire défini.</p>';
+                return;
+            }
+
+            Object.entries(contraries).forEach(([assumption, contrary]) => {
+                const contraryItem = document.createElement('div');
+                contraryItem.className = 'contrary-item';
+                contraryItem.innerHTML = `<strong>C(${assumption})</strong> = ${contrary}`;
+                element.appendChild(contraryItem);
+            });
+        }
+
+        function displayRules(rules) {
+            const element = document.getElementById('rulesList');
+            element.innerHTML = '';
+            
+            if (!rules || rules.length === 0) {
+                element.innerHTML = '<p>Aucune règle définie.</p>';
+                return;
+            }
+
+            rules.forEach(rule => {
+                const ruleItem = document.createElement('div');
+                ruleItem.className = 'rule-item';
+                const premises = rule.premises.length > 0 ? rule.premises.join(', ') : '∅';
+                ruleItem.innerHTML = `<strong>${rule.name}:</strong> ${rule.conclusion} ← ${premises}`;
+                element.appendChild(ruleItem);
+            });
+        }
+
+        function displayAttackList(elementId, attacks) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '';
+            
+            if (!attacks || attacks.length === 0) {
+                element.innerHTML = '<p>Aucune attaque de ce type détectée.</p>';
+                return;
+            }
+
+            attacks.forEach(attack => {
+                const attackItem = document.createElement('div');
+                attackItem.className = 'attack-item';
+                attackItem.innerHTML = attack.description;
+                element.appendChild(attackItem);
+            });
+        }
+
+        // Process the default example on page load
+        window.onload = function() {
+            processABA();
+        };
+    </script>
+</body>
+</html>
